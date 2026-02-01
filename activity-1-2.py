@@ -7,10 +7,10 @@ st.set_page_config(page_title="Echo Agent")
 st.title("Echo Agent")
 
 # Create an input box for the user to type a message
-user_text = st.chat_input("Type a message...")
+user_text = st.chat_input("")
 
 # Check if the user has entered any text
 if user_text:
     # Display the user's message in the chat interface
-    with st.chat_message("user"):
-        st.markdown(user_text)
+    with ___:
+        # Display the user's message in the chat interface
