@@ -20,7 +20,7 @@ if user_text:
         st.markdown(user_text)
 
     # Generate a reply using the echo_agent function
-    reply = echo_agent(user_text)
+    reply = 
     # Display the assistant's reply in the chat interface
-    with st.chat_message("assistant"):
-        st.markdown(reply)
+    with :
+        
