@@ -20,13 +20,13 @@ user_text = st.chat_input("Type a message...")
 # Check if the user has entered any text
 if user_text:
     # Add the user's message to the chat history
-    st.session_state.history.append({"role": "user", "content": user_text})
+    
 
     # Generate a reply using the echo_agent function
-    reply = echo_agent(user_text)
-    st.session_state.history.append({"role": "assistant", "content": reply})
+    reply = 
+    
 
 # Display the chat history in the main interface
 for message in st.session_state.history:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    with :
+        
