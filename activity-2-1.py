@@ -11,22 +11,22 @@ def rule_based_agent(user_text: str) -> str:
     text = user_text.lower().strip()
 
     # Respond to greetings
-    if text in {"hi", "hello", "hey"}:
-        return "Hello! Tell me what you're working on today."
+    if text in {}:
+        return ""
     # Respond to statements about feelings
-    if text.startswith("i feel "):
-        return "Thanks for sharing. What do you think is causing that feeling?"
+    if text.startswith(""):
+        return ""
     # Respond to mentions of deadlines
-    if "deadline" in text:
-        return "What's the deadline date, and what are the next two tasks you can do?"
-    # Default response for unrecognized input
-    return "I'm a rule-based agent. Try saying 'I feel ...' or mention a deadline."
+    if "" in text:
+        return ""
+    #
+    return None
 
 
 # Initialize the session state to store conversation messages
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Hi! I can remember our conversation now."}
+        {"role": "assistant", "content": "Hi! I am a test chatbot."}
     ]
 
 # Display all previous messages in the chat interface
