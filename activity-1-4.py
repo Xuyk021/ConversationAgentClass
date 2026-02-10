@@ -10,6 +10,8 @@ st.set_page_config(page_title="Echo Agent")
 # Display the main title of the web application
 st.title("Echo Agent")
 
+# Create two buttons: one for clearing the chat and another for export history
+
 # Initialize chat history
 if "history" not in st.session_state:
     st.session_state.history = []
