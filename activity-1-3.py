@@ -4,9 +4,6 @@ import streamlit as st
 def echo_agent(user_text: str) -> str:
     return f"You said: {user_text}"
 
-# Configure the Streamlit page with a title
-st.set_page_config(page_title="Echo Agent")
-
 # Display the main title of the web application
 st.title("Echo Agent")
 
