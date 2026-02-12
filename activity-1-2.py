@@ -1,8 +1,5 @@
 import streamlit as st
 
-# Configure the Streamlit page with a title and an icon
-st.set_page_config(page_title="Echo Agent")
-
 # Display the main title of the web application with an icon
 st.title("Echo Agent")
 
