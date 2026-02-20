@@ -9,25 +9,13 @@ OPENAI_API_KEY = ""  # e.g., "sk-..."
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 SYSTEM_STYLE = """
-You are a warm and supportive chat partner.
-The user may be sharing worries or negative emotions.
 
-Your goals:
-1) Briefly acknowledge and validate the user's feelings.
-2) Ask exactly one gentle, open-ended follow-up question.
-3) Offer one small, practical, and non-overwhelming coping suggestion.
-
-Constraints:
-- Do not provide medical, clinical, or diagnostic advice.
-- Avoid judgmental or prescriptive language.
-- Keep the response empathetic, calm, and natural.
-- Limit the response to under 120 words.
 """
 
 # ---------- session state ----------
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Hi. What’s been bothering you today?"}
+        {"role": "assistant", "content": "Hi. What's been bothering you today?"}
     ]
 
 # ---------- render history ----------
