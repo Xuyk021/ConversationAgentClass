@@ -1,280 +1,207 @@
-from __future__ import annotations
-
-
-from datetime import date
-import random
-import re
+import os
 import streamlit as st
-
-try:
-    from openai import OpenAI
-except Exception:
-    OpenAI = None
-
-# TODO: Paste your OpenAI API key here if you want LLM advice to work.
-# Start of the code block ===========================
-OPENAI_API_KEY = ""
-# End of the code block =============================
+from openai import OpenAI
 
 
-APP_TITLE = "🧘 Daily Anxiety Tracker Bot"
 
 
-def today_str() -> str:
-    return date.today().isoformat()
+MODEL = "gpt-4o-mini"
+st.set_page_config(page_title="Daily Check-in Chatbot")
+st.title("🧠 Daily Depression Check-in")
 
+# ===== Session state =====
+if "stage" not in st.session_state:
+    st.session_state.stage = "level"
 
-def append_history(role: str, content: str) -> None:
-    st.session_state.history.append({"role": role, "content": content})
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
+if "level" not in st.session_state:
+    st.session_state.level = None
 
-def render_history() -> None:
-    # TODO (1): Render chat history from st.session_state.history
-    # Hint:
-    # for m in st.session_state.history:
-    #   with st.chat_message(m["role"]):
-    #       st.markdown(m["content"])
-    # Start of the code block ===========================
+if "note" not in st.session_state:
+    st.session_state.note = None
+
+if "api_key" not in st.session_state:
+    st.session_state.api_key = ""
+
+if "api_key_confirmed" not in st.session_state:
+    st.session_state.api_key_confirmed = False
+
     
+# ===== Sidebar =====
+st.sidebar.markdown("## :material/settings: Settings")
 
-    # End of the code block =============================
-    pass
+# ===== API Key input ===== DO NOT Change THIS SECTION =====
+disabled_input = st.session_state.api_key_confirmed
 
+api_key_input = st.sidebar.text_input(
+    ":material/key: OpenAI API Key",
+    value=st.session_state.api_key,
+    type="password",
+    disabled=disabled_input
+)
 
-def parse_level(user_text: str) -> int | None:
-    """
-    Accept:
-      - "7"
-      - "7/10"
-      - "log 7"
-      - "anxiety 7"
-      - "level 7"
-    """
-    t = user_text.strip().lower()
-    m = re.match(r"^(?:(?:log|anxiety|level)\s*)?(\d{1,2})(?:\s*/\s*10)?\s*$", t)
-    if not m:
-        return None
-    return int(m.group(1))
+# ----- Confirm button -----
+if not st.session_state.api_key_confirmed:
+    if st.sidebar.button(
+        ":material/check: Confirm API Key",
+        use_container_width=True
+    ):
+        if api_key_input.strip():
+            st.session_state.api_key = api_key_input.strip()
+            st.session_state.api_key_confirmed = True
+            st.rerun()
+        else:
+            st.sidebar.error("Please enter a key.")
 
+# ----- Change button -----
+else:
+    if st.sidebar.button(
+        ":material/edit: Change API Key",
+        use_container_width=True
+    ):
+        st.session_state.api_key_confirmed = False
+        st.rerun()
 
-def valid_level(level: int) -> bool:
-    return 1 <= level <= 10
+# ----- Block app if not confirmed -----
+if not st.session_state.api_key_confirmed:
+    st.sidebar.warning("Confirm API key to start.")
+    st.stop()
 
-
-def rule_smalltalk(user_text: str) -> str | None:
-    """
-    If user greets / says small talk / mentions deadlines,
-    respond politely and guide them back to entering 1–10.
-    """
-    # TODO: Implement:
-    # - greetings set (hi/hello/hey...)
-    # - small talk pattern like "how are you"
-    # - workload signals like "deadline/exam/assignment"
-    # Hint: use random.choice([...]) for 2–3 variations.
-    # Start of the code block ===========================
-    
-
-    # End of the code block =============================
-    return None
-
-
-def rule_feedback(level: int) -> str:
-    """
-    Rule-based feedback after logging.
-    Must cover ranges: 1–3, 4–6, 7–8, 9–10.
-    """
-    # TODO: Write short, supportive messages for each range.
-    # Safety hint: For 9–10 include a brief safety note (emergency/crisis support).
-    # Start of the code block ===========================
-    
-    return ""
-    # End of the code block =============================
+# TODO: Create client after confirmation to avoid unnecessary initialization 
 
 
-def llm_advice(level: int, note: str | None) -> str:
-    """
-    OPTIONAL: Called after saving.
-    If key missing, return a helpful message instead of crashing.
-    """
-    if not OPENAI_API_KEY:
-        return "LLM advice is unavailable because no API key was provided in the code."
-    if OpenAI is None:
-        return "LLM advice is unavailable because the `openai` package is not installed."
-    
-    # TODO: Create OpenAI client and call chat.completions.create(...)
-    # Keep prompts concise and non-clinical.
-    # End with: "This is not medical advice."
-    # Start of the code block ===========================
-    
-    return ""
-    # End of the code block =============================
+# ===========================================================================
+
+# ----- Export history -----
+import json
+
+st.sidebar.markdown("## :material/build: Tools")
+
+# TODO: Export history as a file with proper formatting and metadata (json, txt, csv, etc.)
+
+# ===========================================================================
 
 
-def format_history(log: list[dict], limit: int = 3) -> str:
-    if not log:
-        return "No history yet. Start by typing a number **1–10**."
-    recent = log[-limit:]
-    lines = ["Your most recent check-ins:"]
-    for item in recent:
-        lines.append(f"- {item['date']}: {item['level']}/10")
-    return "\n".join(lines)
-
-
-# -------------------- App UI --------------------
-
-st.set_page_config(page_title="Daily Anxiety Tracker", page_icon="🧘")
-st.title(APP_TITLE)
-
-if st.button("Clear chat"):
-    # TODO: This button should reset the chat state.
-    # Use st.session_state.pop(key, default) to safely remove stored values.
-    # The keys to clear are chat-related variables such as messages, stage,
-    # today_level, today_note, and anxiety_log.
-    # After clearing the state, use st.rerun() so the interface updates immediately.
-    # Start of the code block ===========================
-    
-
-    # End of the code block =============================
+# ----- Clear history -----
+if st.sidebar.button(":material/delete: Clear chat history", use_container_width=True):
+    st.session_state.messages = []
+    st.session_state.stage = "level"
+    st.session_state.level = None
+    st.session_state.note = None
     st.rerun()
 
-# State init
-if "history" not in st.session_state:
-    st.session_state.history = [
-        {
-            "role": "assistant",
-            "content": (
-                "Hi! Let’s do a quick daily check-in.\n\n"
-                "**Step 1:** Rate your anxiety today from **1 to 10**.\n"
-                "Type a number like `6`."
-            ),
-        }
-    ]
+# TODO: Render history =====
 
-if "stage" not in st.session_state:
-    st.session_state.stage = "ASK_LEVEL"
-
-if "today_level" not in st.session_state:
-    st.session_state.today_level = None
-
-if "today_note" not in st.session_state:
-    st.session_state.today_note = None
-
-if "anxiety_log" not in st.session_state:
-    st.session_state.anxiety_log = []
+# ===========================================================================
 
 
-render_history()
+# ===== Streaming helper =====
+def stream_llm(system, user):
+    stream = client.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        temperature=0.3,
+        stream=True,
+    )
+
+    full_text = ""
+
+    def generator():
+        nonlocal full_text
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                token = chunk.choices[0].delta.content
+                full_text += token
+                yield token
+
+    return generator, lambda: full_text
+
+
+# ===== Stage logic =====
+if st.session_state.stage == "level":
+    if not st.session_state.messages:
+        msg = "Please enter your depression level from 1 to 10 (e.g., 6, log 6, 7/10)."
+        st.session_state.messages.append({"role": "assistant", "content": msg})
+        st.rerun()
+
+    user_input = st.chat_input("Enter level...")
+    if user_input:
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        # TODO: Analyze level input 
+   
 
 
 
-#-------------------- User input handling --------------------
-
-user_text = st.chat_input("Type here (try: 6, log 6, help, today, history, advice)")
-
-if user_text:
-    append_history("user", user_text)
-    with st.chat_message("user"):
-        st.markdown(user_text)
-
-    cmd = user_text.strip().lower()
-
-    # Implement simple commands (help/today/history/advice) in a beginner-friendly way.
-    # - help: show command list
-    # - today: show today's saved log if exists
-    # - advice: regenerate llm advice (if a level exists)
-    # - history: show past 3 entries from anxiety_log with dates and levels.
-    # Hint: You can handle commands before the stage machine and use st.stop() after responding.
-    if cmd == "help":
-        # TODO: Implement simple command 'help'
-        # Start of the code block ===========================
-
-        # End of the code block =============================
-
-        st.stop()
-
-    if cmd == "today":
-        today = today_str()
-        todays = [x for x in st.session_state.anxiety_log if x["date"] == today]
-        if not todays:
-            reply = "No check-in saved for today yet. Type a number **1–10** to start."
-        else:
-            last = todays[-1]
-            reply = f"Today ({today}) you logged **{last['level']}/10**. Note: {last['note'] or '(none)'}"
-        append_history("assistant", reply)
-        with st.chat_message("assistant"):
-            st.markdown(reply)
-        st.stop()
-    
-    if cmd == "history":
-        # TODO: Implement simple command 'history'
-        # Start of the code block ===========================
-
-        # End of the code block ===========================
-
-        st.stop()
 
 
-    # Stage machine
-    if st.session_state.stage == "ASK_LEVEL":
-        # TODO: First handle smalltalk:
-        # reply = rule_smalltalk(user_text)
-        # If reply is None, parse level and validate:
-        # - level = parse_level(user_text)
-        # - if level is None -> prompt "enter 1..10"
-        # - elif not valid_level(level) -> out of range message
-        # - else -> save today_level, set stage to "ASK_NOTE", ask optional note or "skip"
-        # Start of the code block ===========================
-        
-        reply = 
 
-        # End of the code block ===========================
 
-        append_history("assistant", reply)
-        with st.chat_message("assistant"):
-            st.markdown(reply)
 
-    elif st.session_state.stage == "ASK_NOTE":
-        note = user_text.strip()
-        # TODO: Save note:
-        # - if user typed "skip": today_note = None
-        # - else: keep it short (e.g., first 200 chars)
-        # Then:
-        # - save entry into anxiety_log: {"date": today_str(), "level": today_level, "note": today_note}
-        # - build reply with:
-        #   "Rule-based feedback" (rule_feedback)
-        #   "LLM-based advice" (llm_advice)
-        # - set stage to "DONE"
-        # Start of the code block ===========================
-        
-        reply = 
+        # ===========================================================================
+        st.rerun()
 
-        # End of the code block ===========================
-        st.session_state.stage = "DONE"
+elif st.session_state.stage == "feedback":
+    level = st.session_state.level
 
-        append_history("assistant", reply)
-        with st.chat_message("assistant"):
-            st.markdown(reply)
+    # TODO: Give feedback based on level using LLM 
 
-    else:
-        # DONE stage: allow advice regeneration or restart
-        if cmd == "advice":
-            if st.session_state.today_level is None:
-                reply = "No level found. Type a number **1–10** to start."
-                st.session_state.stage = "ASK_LEVEL"
-            else:
-                reply = "### LLM-based advice\n\n" + llm_advice(st.session_state.today_level, st.session_state.today_note)
-        else:
-            # If they type a number, restart new check-in
-            maybe_level = parse_level(user_text)
-            if maybe_level is not None:
-                st.session_state.stage = "ASK_LEVEL"
-                st.session_state.today_level = None
-                st.session_state.today_note = None
-                reply = "Starting a new check-in. Please enter today’s anxiety level **1–10**."
-            else:
-                reply = "Type `help` for commands, or type a number **1–10** to start a new check-in."
 
-        append_history("assistant", reply)
-        with st.chat_message("assistant"):
-            st.markdown(reply)
 
+
+
+
+
+
+
+    # ===========================================================================
+    st.session_state.stage = "note"
+    st.rerun()
+
+elif st.session_state.stage == "note":
+    note_input = st.chat_input("Write your note...")
+
+    if note_input:
+        st.session_state.note = note_input
+        st.session_state.messages.append({"role": "user", "content": note_input})
+        with st.chat_message("user"):
+            st.write(note_input)
+
+        # TODO: Respond to note with LLM
+
+
+
+
+
+
+
+
+        # ===========================================================================
+        st.session_state.stage = "chat"
+        st.rerun()
+
+elif st.session_state.stage == "chat":
+    user_input = st.chat_input("Chat...")
+
+    if user_input:
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.write(user_input)
+
+        # TODO: Respond to chat with LLM
+
+
+
+
+
+
+
+
+
+        # ===========================================================================
+
+        st.rerun()
