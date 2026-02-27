@@ -40,7 +40,7 @@ if user_text:
         input=[
             {"role": m["role"], "content": m["content"]}
             for m in st.session_state.messages
-        ],
+        ], # type: ignore
     )
 
     assistant_text = response.output_text
